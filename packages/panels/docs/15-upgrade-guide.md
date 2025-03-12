@@ -145,7 +145,7 @@ The Heroicons library has been updated to v2. This means that any icons you use 
 
 #### Date-time pickers
 
-The date-time picker form field now uses the browser's native date picker by default. It usually has a better UX than the old date picker, but you may notice features missing, bad browser compatibility, or behavioural bugs. If you want to revert to the old date picker, you can use the `native(false)` method:
+The date-time picker form field now uses the browser's native date picker by default. It usually has a better UX than the old date picker, but you may notice features missing, bad browser compatibility, or behavioral bugs. If you want to revert to the old date picker, you can use the `native(false)` method:
 
 ```php
 use Filament\Forms\Components\DateTimePicker;
@@ -193,7 +193,7 @@ When using simple resources, remove the `CanCreateRecords`, `CanDeleteRecords`, 
 
 We also deprecated type-specific relation manager classes. Any classes extending `BelongsToManyRelationManager`, `HasManyRelationManager`, `HasManyThroughRelationManager`, `MorphManyRelationManager`, or `MorphToManyRelationManager` should now extend `\Filament\Resources\RelationManagers\RelationManager`. You can also remove the `CanAssociateRecords`, `CanAttachRecords`, `CanCreateRecords`, `CanDeleteRecords`, `CanDetachRecords`, `CanDisassociateRecords`, `CanEditRecords`, and `CanViewRecords` traits from relation managers.
 
-To learn more about v2.13 changes, read our [blog post](https://filamentphp.com/blog/v2130-admin-resources).
+To learn more about v2.13 changes, read our [blog post](https://v2.filamentphp.com/blog/v2130-admin-resources).
 
 #### Blade components
 

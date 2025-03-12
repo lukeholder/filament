@@ -43,7 +43,17 @@
             $arrayState = implode(
                 ', ',
                 array_map(
-                    fn ($value) => $value instanceof \Filament\Support\Contracts\HasLabel ? $value->getLabel() : $value,
+                    function ($value) {
+                        if ($value instanceof \Filament\Support\Contracts\HasLabel) {
+                            return $value->getLabel();
+                        }
+
+                        if (is_array($value)) {
+                            return json_encode($value);
+                        }
+
+                        return $value;
+                    },
                     $arrayState,
                 ),
             );
@@ -82,7 +92,6 @@
                 'list-inside list-disc' => $isBulleted,
                 'gap-1.5' => $isBadge,
                 'flex-wrap' => $isBadge && (! $isListWithLineBreaks),
-                'whitespace-normal' => $canWrap,
                 match ($alignment) {
                     Alignment::Start => 'text-start',
                     Alignment::Center => 'text-center',
@@ -210,6 +219,7 @@
                                     @class([
                                         'fi-ta-text-item-label',
                                         'group-hover/item:underline group-focus-visible/item:underline' => $url,
+                                        'whitespace-normal' => $canWrap,
                                         'line-clamp-[--line-clamp]' => $lineClamp,
                                         match ($size) {
                                             TextColumnSize::ExtraSmall, 'xs' => 'text-xs',

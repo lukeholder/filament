@@ -242,7 +242,7 @@ trait CanBeValidated
         return $this;
     }
 
-    public function multipleOf(int | Closure $value): static
+    public function multipleOf(int | float | Closure $value): static
     {
         $this->rule(static function (Field $component) use ($value) {
             return 'multiple_of:' . $component->evaluate($value);
@@ -326,6 +326,11 @@ trait CanBeValidated
     public function requiredIf(string | Closure $statePath, mixed $stateValues, bool $isStatePathAbsolute = false): static
     {
         return $this->multiFieldValueComparisonRule('required_if', $statePath, $stateValues, $isStatePathAbsolute);
+    }
+
+    public function requiredIfAccepted(string | Closure $statePath, bool $isStatePathAbsolute = false): static
+    {
+        return $this->fieldComparisonRule('required_if_accepted', $statePath, $isStatePathAbsolute);
     }
 
     public function requiredUnless(string | Closure $statePath, mixed $stateValues, bool $isStatePathAbsolute = false): static
@@ -531,7 +536,7 @@ trait CanBeValidated
         return $this;
     }
 
-    public function distinct(): static
+    public function distinct(bool | Closure $condition = true): static
     {
         $this->rule(static function (Field $component, mixed $state) {
             return function (string $attribute, mixed $value, Closure $fail) use ($component, $state) {
@@ -607,7 +612,7 @@ trait CanBeValidated
 
                 $fail(__($validationMessages['distinct'] ?? 'validation.distinct', ['attribute' => $component->getValidationAttribute()]));
             };
-        });
+        }, $condition);
 
         return $this;
     }
@@ -836,6 +841,8 @@ trait CanBeValidated
 
             if (is_array($stateValues)) {
                 $stateValues = implode(',', $stateValues);
+            } elseif (is_bool($stateValues)) {
+                $stateValues = $stateValues ? 'true' : 'false';
             }
 
             return "{$rule}:{$statePath},{$stateValues}";

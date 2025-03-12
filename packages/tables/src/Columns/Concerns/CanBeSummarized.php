@@ -45,6 +45,6 @@ trait CanBeSummarized
 
     public function hasSummary(): bool
     {
-        return (bool) count($this->summarizers);
+        return (bool) count($this->getSummarizers());
     }
 }

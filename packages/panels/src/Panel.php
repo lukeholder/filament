@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 class Panel extends Component
 {
+    use Panel\Concerns\CanGenerateResourceUrls;
     use Panel\Concerns\HasAssets;
     use Panel\Concerns\HasAuth;
     use Panel\Concerns\HasAvatars;
@@ -44,16 +45,19 @@ class Panel extends Component
     use Panel\Concerns\HasUnsavedChangesAlerts;
     use Panel\Concerns\HasUserMenu;
 
-    protected bool $isDefault = false;
+    protected bool | Closure $isDefault = false;
 
-    protected ?Closure $bootUsing = null;
+    /**
+     * @var array<array-key, Closure>
+     */
+    protected array $bootCallbacks = [];
 
     public static function make(): static
     {
         return app(static::class);
     }
 
-    public function default(bool $condition = true): static
+    public function default(bool | Closure $condition = true): static
     {
         $this->isDefault = $condition;
 
@@ -98,20 +102,20 @@ class Panel extends Component
             $plugin->boot($this);
         }
 
-        if ($callback = $this->bootUsing) {
+        foreach ($this->bootCallbacks as $callback) {
             $callback($this);
         }
     }
 
     public function bootUsing(?Closure $callback): static
     {
-        $this->bootUsing = $callback;
+        $this->bootCallbacks[] = $callback;
 
         return $this;
     }
 
     public function isDefault(): bool
     {
-        return $this->isDefault;
+        return (bool) $this->evaluate($this->isDefault);
     }
 }

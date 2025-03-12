@@ -145,17 +145,21 @@ trait HasFilters
     /**
      * @return array<string, BaseFilter>
      */
-    public function getFilters(): array
+    public function getFilters(bool $withHidden = false): array
     {
+        if ($withHidden) {
+            return $this->filters;
+        }
+
         return array_filter(
             $this->filters,
             fn (BaseFilter $filter): bool => $filter->isVisible(),
         );
     }
 
-    public function getFilter(string $name): ?BaseFilter
+    public function getFilter(string $name, bool $withHidden = false): ?BaseFilter
     {
-        return $this->getFilters()[$name] ?? null;
+        return $this->getFilters($withHidden)[$name] ?? null;
     }
 
     public function getFiltersForm(): Form
@@ -205,7 +209,8 @@ trait HasFilters
                 Action::make('resetFilters')
                     ->label(__('filament-tables::table.filters.actions.reset.label'))
                     ->color('danger')
-                    ->action('resetTableFiltersForm'),
+                    ->action('resetTableFiltersForm')
+                    ->button(),
             ])
             ->modalCancelActionLabel(__('filament::components/modal.actions.close.label'))
             ->table($this);
@@ -229,7 +234,8 @@ trait HasFilters
             ->label(__('filament-tables::table.filters.actions.apply.label'))
             ->action('applyTableFilters')
             ->table($this)
-            ->visible($this->hasDeferredFilters());
+            ->visible($this->hasDeferredFilters())
+            ->button();
 
         if ($this->modifyFiltersApplyActionUsing) {
             $action = $this->evaluate($this->modifyFiltersApplyActionUsing, [

@@ -41,13 +41,13 @@ export default function statsOverviewStatChart({
         },
 
         initChart: function () {
-            Chart.defaults.backgroundColor = getComputedStyle(
-                this.$refs.backgroundColorElement,
-            ).color
-
-            Chart.defaults.borderColor = getComputedStyle(
-                this.$refs.borderColorElement,
-            ).color
+            if (
+                !this.$refs.canvas ||
+                !this.$refs.backgroundColorElement ||
+                !this.$refs.borderColorElement
+            ) {
+                return
+            }
 
             return new Chart(this.$refs.canvas, {
                 type: 'line',
@@ -59,6 +59,12 @@ export default function statsOverviewStatChart({
                             borderWidth: 2,
                             fill: 'start',
                             tension: 0.5,
+                            backgroundColor: getComputedStyle(
+                                this.$refs.backgroundColorElement,
+                            ).color,
+                            borderColor: getComputedStyle(
+                                this.$refs.borderColorElement,
+                            ).color,
                         },
                     ],
                 },
@@ -93,6 +99,10 @@ export default function statsOverviewStatChart({
         },
 
         getChart: function () {
+            if (!this.$refs.canvas) {
+                return null
+            }
+
             return Chart.getChart(this.$refs.canvas)
         },
     }

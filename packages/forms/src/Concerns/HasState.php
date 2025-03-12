@@ -225,19 +225,25 @@ trait HasState
     {
         $state = $this->validate();
 
-        value($afterValidate);
-
         if ($shouldCallHooksBefore) {
             $this->callBeforeStateDehydrated();
-            $this->saveRelationships();
-            $this->loadStateFromRelationships(andHydrate: true);
+
+            $afterValidate || $this->saveRelationships();
+            $afterValidate || $this->loadStateFromRelationships(andHydrate: true);
         }
 
         $this->dehydrateState($state);
         $this->mutateDehydratedState($state);
 
         if ($statePath = $this->getStatePath()) {
-            return data_get($state, $statePath) ?? [];
+            $state = data_get($state, $statePath) ?? [];
+        }
+
+        if ($afterValidate) {
+            value($afterValidate, $state);
+
+            $shouldCallHooksBefore && $this->saveRelationships();
+            $shouldCallHooksBefore && $this->loadStateFromRelationships(andHydrate: true);
         }
 
         return $state;
@@ -271,13 +277,17 @@ trait HasState
 
     public function getStatePath(bool $isAbsolute = true): string
     {
+        if (! $isAbsolute) {
+            return $this->statePath ?? '';
+        }
+
         if (isset($this->cachedAbsoluteStatePath)) {
             return $this->cachedAbsoluteStatePath;
         }
 
         $pathComponents = [];
 
-        if ($isAbsolute && $parentComponentStatePath = $this->getParentComponent()?->getStatePath()) {
+        if ($parentComponentStatePath = $this->getParentComponent()?->getStatePath()) {
             $pathComponents[] = $parentComponentStatePath;
         }
 

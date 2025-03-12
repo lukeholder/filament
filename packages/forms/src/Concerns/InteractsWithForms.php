@@ -245,9 +245,7 @@ trait InteractsWithForms
         }
     }
 
-    protected function onValidationError(ValidationException $exception): void
-    {
-    }
+    protected function onValidationError(ValidationException $exception): void {}
 
     /**
      * @param  array<string, mixed>  $attributes
@@ -290,7 +288,8 @@ trait InteractsWithForms
     {
         $statePath = (string) str($statePath)->before('.');
 
-        $this->oldFormState[$statePath] = data_get($this, $statePath);
+        // https://github.com/filamentphp/filament/pull/13973
+        $this->oldFormState[$statePath] ??= data_get($this, $statePath);
     }
 
     public function getOldFormState(string $statePath): mixed

@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 
 class CheckboxList extends Field implements Contracts\CanDisableOptions, Contracts\HasNestedRecursiveValidationRules
 {
+    use Concerns\CanAllowHtml;
     use Concerns\CanBeSearchable;
     use Concerns\CanDisableOptions;
     use Concerns\CanDisableOptionsWhenSelectedInSiblingRepeaterItems;
@@ -251,7 +252,7 @@ class CheckboxList extends Field implements Contracts\CanDisableOptions, Contrac
         return $this->getOptionLabelFromRecordUsing !== null;
     }
 
-    public function getOptionLabelFromRecord(Model $record): string
+    public function getOptionLabelFromRecord(Model $record): string | Htmlable
     {
         return $this->evaluate(
             $this->getOptionLabelFromRecordUsing,

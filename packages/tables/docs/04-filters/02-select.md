@@ -39,7 +39,7 @@ SelectFilter::make('status')
 
 ## Multi-select filters
 
-These allow the user to select multiple options to apply the filter to their table. For example, a status filter may present the user with a few status options to pick from and filter the table using. When the user selects multiple options, the table will be filtered to show records that match any of the selected options. You can enable this behaviour using the `multiple()` method:
+These allow the user to select multiple options to apply the filter to their table. For example, a status filter may present the user with a few status options to pick from and filter the table using. When the user selects multiple options, the table will be filtered to show records that match any of the selected options. You can enable this behavior using the `multiple()` method:
 
 ```php
 use Filament\Tables\Filters\SelectFilter;
@@ -117,3 +117,29 @@ SelectFilter::make('status')
     ->default('draft')
     ->selectablePlaceholder(false)
 ```
+
+## Applying select filters by default
+
+You may set a select filter to be enabled by default, using the `default()` method. If using a single select filter, the `default()` method accepts a single option value. If using a `multiple()` select filter, the `default()` method accepts an array of option values:
+
+```php
+use Filament\Tables\Filters\SelectFilter;
+
+SelectFilter::make('status')
+    ->options([
+        'draft' => 'Draft',
+        'reviewing' => 'Reviewing',
+        'published' => 'Published',
+    ])
+    ->default('draft')
+
+SelectFilter::make('status')
+    ->options([
+        'draft' => 'Draft',
+        'reviewing' => 'Reviewing',
+        'published' => 'Published',
+    ])
+    ->multiple()
+    ->default(['draft', 'reviewing'])
+```
+

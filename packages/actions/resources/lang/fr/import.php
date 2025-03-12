@@ -13,6 +13,9 @@ return [
             'file' => [
                 'label' => 'Fichier',
                 'placeholder' => 'Télécharger un fichier CSV',
+                'rules' => [
+                    'duplicate_columns' => '{0} Le fichier ne doit pas contenir plus d\'un nom de colonne vide.|{1,*} Le fichier ne doit pas contenir de doublons de noms de colonne.: :columns.',
+                ],
             ],
 
             'columns' => [
@@ -72,6 +75,7 @@ return [
         'file_name' => 'import-:import_id-:csv_name-failed-rows',
         'error_header' => 'error',
         'system_error' => 'Erreur système, veuillez contacter le support.',
+        'column_mapping_required_for_new_record' => 'La colonne n\'a pas été associée à une colonne dans le fichier, mais elle est requise pour créer de nouveaux enregistrements.',
     ],
 
 ];

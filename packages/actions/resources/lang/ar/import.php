@@ -13,6 +13,9 @@ return [
             'file' => [
                 'label' => 'ملف',
                 'placeholder' => 'تحميل ملف CSV',
+                'rules' => [
+                    'duplicate_columns' => '{0} يجب ألا يحتوي الملف على أكثر من عنوان عمود فارغ واحد.|{1,*} يجب ألا يحتوي الملف على عناوين أعمدة مكررة: :columns.',
+                ],
             ],
 
             'columns' => [
@@ -72,6 +75,7 @@ return [
         'file_name' => 'import-:import_id-:csv_name-failed-rows',
         'error_header' => 'خطأ',
         'system_error' => 'خطأ في النظام، يرجى الاتصال بالدعم.',
+        'column_mapping_required_for_new_record' => 'لم يتم تعيين العمود :attribut إلى عمود في الملف، ولكنه مطلوب لإنشاء سجلات جديدة.',
     ],
 
 ];

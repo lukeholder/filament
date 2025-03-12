@@ -96,13 +96,26 @@
             </x-filament::input.select>
         @else
             <div
-                x-ignore
+                class="hidden"
+                x-data="{
+                    isDisabled: @js($isDisabled),
+                    init: function () {
+                        const container = $el.nextElementSibling
+                        container.dispatchEvent(
+                            new CustomEvent('set-select-property', {
+                                detail: { isDisabled: this.isDisabled },
+                            }),
+                        )
+                    },
+                }"
+            ></div>
+            <div
                 @if (FilamentView::hasSpaMode())
-                    ax-load="visible"
+                    {{-- format-ignore-start --}}x-load="visible || event (ax-modal-opened)"{{-- format-ignore-end --}}
                 @else
-                    ax-load
+                    x-load
                 @endif
-                ax-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('select', 'filament/forms') }}"
+                x-load-src="{{ \Filament\Support\Facades\FilamentAsset::getAlpineComponentSrc('select', 'filament/forms') }}"
                 x-data="selectFormComponent({
                             canSelectPlaceholder: @js($canSelectPlaceholder),
                             isHtmlAllowed: @js($isHtmlAllowed()),
@@ -141,6 +154,7 @@
                         })"
                 wire:ignore
                 x-on:keydown.esc="select.dropdown.isActive && $event.stopPropagation()"
+                x-on:set-select-property="$event.detail.isDisabled ? select.disable() : select.enable()"
                 {{
                     $attributes
                         ->merge($getExtraAlpineAttributes(), escape: false)

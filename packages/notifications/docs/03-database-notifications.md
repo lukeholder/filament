@@ -23,7 +23,7 @@ php artisan notifications:table
 
 ## Rendering the database notifications modal
 
-> If you want to add database notifications to a panel, [follow this part of the guide](#adding-database-notifications-to-a-panel).
+> If you want to add database notifications to a panel, [follow this part of the guide](#adding-the-database-notifications-modal-to-a-panel).
 
 If you'd like to render the database notifications modal outside of the [Panel Builder](../panels), you'll need to add a new Livewire component to your Blade layout:
 
@@ -98,6 +98,8 @@ $recipient->notify(
 );
 ```
 
+> Laravel sends database notifications using the queue. Ensure your queue is running in order to receive the notifications.
+
 Alternatively, use a traditional [Laravel notification class](https://laravel.com/docs/notifications#generating-notifications) by returning the notification from the `toDatabase()` method:
 
 ```php
@@ -140,19 +142,16 @@ DatabaseNotifications::pollingInterval(null);
 
 Alternatively, the package has a native integration with [Laravel Echo](https://laravel.com/docs/broadcasting#client-side-installation). Make sure Echo is installed, as well as a [server-side websockets integration](https://laravel.com/docs/broadcasting#server-side-installation) like Pusher.
 
-Once websockets are set up, after sending a database notification you may dispatch a `DatabaseNotificationsSent` event, which will immediately fetch new notifications for that user:
+Once websockets are set up, you can automatically dispatch a `DatabaseNotificationsSent` event by setting the `isEventDispatched` parameter to `true` when sending the notification. This will trigger the immediate fetching of new notifications for the user:
 
 ```php
-use Filament\Notifications\Events\DatabaseNotificationsSent;
 use Filament\Notifications\Notification;
 
 $recipient = auth()->user();
 
 Notification::make()
     ->title('Saved successfully')
-    ->sendToDatabase($recipient);
-
-event(new DatabaseNotificationsSent($recipient));
+    ->sendToDatabase($recipient, isEventDispatched: true);
 ```
 
 ## Marking database notifications as read

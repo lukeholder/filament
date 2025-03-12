@@ -1,6 +1,8 @@
 @php
     $isContained = $isContained();
     $statePath = $getStatePath();
+    $previousAction = $getAction('previous');
+    $nextAction = $getAction('next');
 @endphp
 
 <div
@@ -19,7 +21,7 @@
             this.step = this.getSteps()[nextStepIndex]
 
             this.autofocusFields()
-            this.scrollToTop()
+            this.scroll()
         },
 
         previousStep: function () {
@@ -32,11 +34,15 @@
             this.step = this.getSteps()[previousStepIndex]
 
             this.autofocusFields()
-            this.scrollToTop()
+            this.scroll()
         },
 
-        scrollToTop: function () {
-            this.$root.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        scroll: function () {
+            this.$nextTick(() => {
+                this.$refs.header.children[
+                    this.getStepIndex(this.step)
+                ].scrollIntoView({ behavior: 'smooth', block: 'start' })
+            })
         },
 
         autofocusFields: function () {
@@ -131,6 +137,7 @@
             'border-b border-gray-200 dark:border-white/10' => $isContained,
             'rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10' => ! $isContained,
         ])
+        x-ref="header"
     >
         @foreach ($getChildComponentContainer()->getComponents() as $step)
             <li
@@ -260,8 +267,14 @@
             'mt-6' => ! $isContained,
         ])
     >
-        <span x-cloak x-on:click="previousStep" x-show="! isFirstStep()">
-            {{ $getAction('previous') }}
+        <span
+            x-cloak
+            @if (! $previousAction->isDisabled())
+                x-on:click="previousStep"
+            @endif
+            x-show="! isFirstStep()"
+        >
+            {{ $previousAction }}
         </span>
 
         <span x-show="isFirstStep()">
@@ -270,19 +283,23 @@
 
         <span
             x-cloak
-            x-on:click="
-                $wire.dispatchFormEvent(
-                    'wizard::nextStep',
-                    '{{ $statePath }}',
-                    getStepIndex(step),
-                )
-            "
-            x-show="! isLastStep()"
+            @if (! $nextAction->isDisabled())
+                x-on:click="
+                    $wire.dispatchFormEvent(
+                        'wizard::nextStep',
+                        '{{ $statePath }}',
+                        getStepIndex(step),
+                    )
+                "
+            @endif
+            x-bind:class="{ 'hidden': isLastStep(), 'block': ! isLastStep() }"
         >
-            {{ $getAction('next') }}
+            {{ $nextAction }}
         </span>
 
-        <span x-show="isLastStep()">
+        <span
+            x-bind:class="{ 'hidden': ! isLastStep(), 'block': isLastStep() }"
+        >
             {{ $getSubmitAction() }}
         </span>
     </div>

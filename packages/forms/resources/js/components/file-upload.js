@@ -1,5 +1,6 @@
 import * as FilePond from 'filepond'
 import Cropper from 'cropperjs'
+import mime from 'mime'
 import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size'
 import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type'
 import FilePondPluginImageCrop from 'filepond-plugin-image-crop'
@@ -56,6 +57,8 @@ export default function fileUploadFormComponent({
     maxFiles,
     maxSize,
     minSize,
+    maxParallelUploads,
+    mimeTypeMap,
     panelAspectRatio,
     panelLayout,
     placeholder,
@@ -81,6 +84,8 @@ export default function fileUploadFormComponent({
         state,
 
         lastState: null,
+
+        error: null,
 
         uploadedFileIndex: {},
 
@@ -113,11 +118,13 @@ export default function fileUploadFormComponent({
                 imageResizeTargetWidth,
                 imageResizeMode,
                 imageResizeUpscale,
+                imageTransformOutputStripImageHead: false,
                 itemInsertLocation: shouldAppendFiles ? 'after' : 'before',
                 ...(placeholder && { labelIdle: placeholder }),
                 maxFiles,
                 maxFileSize: maxSize,
                 minFileSize: minSize,
+                ...(maxParallelUploads && { maxParallelUploads }),
                 styleButtonProcessItemPosition: uploadButtonPosition,
                 styleButtonRemoveItemPosition: removeUploadedFileButtonPosition,
                 styleItemPanelAspectRatio: itemPanelAspectRatio,
@@ -194,6 +201,20 @@ export default function fileUploadFormComponent({
                     oncancel: () => this.closeEditor(),
                     onclose: () => this.closeEditor(),
                 },
+                fileValidateTypeDetectType: (source, detectedType) => {
+                    return new Promise((resolve, reject) => {
+                        const extension = source.name
+                            .split('.')
+                            .pop()
+                            .toLowerCase()
+                        const mimeType =
+                            mimeTypeMap[extension] ||
+                            detectedType ||
+                            mime.getType(extension)
+
+                        mimeType ? resolve(mimeType) : reject()
+                    })
+                },
             })
 
             this.$watch('state', async () => {
@@ -236,7 +257,7 @@ export default function fileUploadFormComponent({
                     .map((file) =>
                         file.source instanceof File
                             ? file.serverId
-                            : this.uploadedFileIndex[file.source] ?? null,
+                            : (this.uploadedFileIndex[file.source] ?? null),
                     ) // file.serverId is null for a file that is not yet uploaded
                     .filter((fileKey) => fileKey)
 
@@ -304,6 +325,24 @@ export default function fileUploadFormComponent({
             this.pond.on('processfileabort', handleFileProcessing)
 
             this.pond.on('processfilerevert', handleFileProcessing)
+
+            if (panelLayout === 'compact circle') {
+                // The compact circle layout does not have enough space to render an error message inside the input.
+                // As such, we need to display the error message outside of the input, using the `error` Alpine.js
+                // property that is output as a message in the field's view.
+
+                this.pond.on('error', (error) => {
+                    // FilePond has a weird English translation for the error message when a file of an unexpected
+                    // type is uploaded, for example: `File of invalid type: Expects  or image/*`. This is a
+                    // hacky workaround to fix the message to be `File of invalid type: Expects image/*`.
+                    this.error = `${error.main}: ${error.sub}`.replace(
+                        'Expects  or',
+                        'Expects',
+                    )
+                })
+
+                this.pond.on('removefile', () => (this.error = null))
+            }
         },
 
         destroy: function () {

@@ -195,12 +195,52 @@ By default, when you click away from a modal, it will close itself. If you wish 
 </x-filament::modal>
 ```
 
-## Hiding the modal close button
+## Closing the modal by escaping
 
-By default, modals have a close button in the top right corner. You can remove the close button from the modal by using the `close-button` attribute:
+By default, when you press escape on a modal, it will close itself. If you wish to disable this behavior for a specific action, you can use the `close-by-escaping` attribute:
 
 ```blade
-<x-filament::modal :close-button="false">
+<x-filament::modal :close-by-escaping="false">
     {{-- Modal content --}}
 </x-filament::modal>
 ```
+
+## Hiding the modal close button
+
+By default, modals with a header have a close button in the top right corner. You can remove the close button from the modal by using the `close-button` attribute:
+
+```blade
+<x-filament::modal :close-button="false">
+    <x-slot name="heading">
+        Modal heading
+    </x-slot>
+
+    {{-- Modal content --}}
+</x-filament::modal>
+```
+
+## Preventing the modal from autofocusing
+
+By default, modals will autofocus on the first focusable element when opened. If you wish to disable this behavior, you can use the `autofocus` attribute:
+
+```blade
+<x-filament::modal :autofocus="false">
+    {{-- Modal content --}}
+</x-filament::modal>
+```
+
+## Disabling the modal trigger button
+
+By default, the trigger button will open the modal even if it is disabled, since the click event listener is registered on a wrapping element of the button itself. If you want to prevent the modal from opening, you should also use the `disabled` attribute on the trigger slot:
+
+```blade
+<x-filament::modal>
+    <x-slot name="trigger" disabled>
+        <x-filament::button :disabled="true">
+            Open modal
+        </x-filament::button>
+    </x-slot>
+    {{-- Modal content --}}
+</x-filament::modal>
+```
+

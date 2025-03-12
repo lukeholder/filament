@@ -70,6 +70,20 @@ class Message extends Model
 }
 ```
 
+### Controlling the maximum parallel uploads
+
+You can control the maximum number of parallel uploads using the `maxParallelUploads()` method:
+
+```php
+use Filament\Forms\Components\FileUpload;
+
+FileUpload::make('attachments')
+    ->multiple()
+    ->maxParallelUploads(1)
+```
+
+This will limit the number of parallel uploads to `1`. If unset, we'll use the [default FilePond value](https://pqina.nl/filepond/docs/api/instance/properties/#core-properties) which is `2`.
+
 ## Controlling file names
 
 By default, a random file name will be generated for newly-uploaded files. This is to ensure that there are never any conflicts with existing files.
@@ -249,7 +263,7 @@ This is perfectly accompanied by the [`avatar()` method](#avatar-mode), which re
 
 ### Cropping and resizing images without the editor
 
-Filepond allows you to crop and resize images before they are uploaded, without the need for a separate editor. You can customize this behaviour using the `imageCropAspectRatio()`, `imageResizeTargetHeight()` and `imageResizeTargetWidth()` methods. `imageResizeMode()` should be set for these methods to have an effect - either [`force`, `cover`, or `contain`](https://pqina.nl/filepond/docs/api/plugins/image-resize).
+Filepond allows you to crop and resize images before they are uploaded, without the need for a separate editor. You can customize this behavior using the `imageCropAspectRatio()`, `imageResizeTargetHeight()` and `imageResizeTargetWidth()` methods. `imageResizeMode()` should be set for these methods to have an effect - either [`force`, `cover`, or `contain`](https://pqina.nl/filepond/docs/api/plugins/image-resize).
 
 ```php
 use Filament\Forms\Components\FileUpload;
@@ -277,6 +291,18 @@ FileUpload::make('attachment')
     ->removeUploadedFileButtonPosition('right')
     ->uploadButtonPosition('left')
     ->uploadProgressIndicatorPosition('left')
+```
+
+### Displaying files in a grid
+
+You can use the [Filepond `grid` layout](https://pqina.nl/filepond/docs/api/style/#grid-layout) by setting the `panelLayout()`:
+
+```php
+use Filament\Forms\Components\FileUpload;
+
+FileUpload::make('attachments')
+    ->multiple()
+    ->panelLayout('grid')
 ```
 
 ## Reordering files
@@ -366,7 +392,7 @@ Please be aware that images, video and audio files will not show the stored file
 
 ## Orienting images from their EXIF data
 
-By default, FilePond will automatically orient images based on their EXIF data. If you wish to disable this behaviour, you can use the `orientImagesFromExif(false)` method:
+By default, FilePond will automatically orient images based on their EXIF data. If you wish to disable this behavior, you can use the `orientImagesFromExif(false)` method:
 
 ```php
 use Filament\Forms\Components\FileUpload;
@@ -434,6 +460,24 @@ FileUpload::make('image')
     ->image()
 ```
 
+#### Custom MIME type mapping
+
+Some file formats may not be recognized correctly by the browser when uploading files. Filament allows you to manually define MIME types for specific file extensions using the `mimeTypeMap()` method:
+
+```php
+use Filament\Forms\Components\FileUpload;
+
+FileUpload::make('designs')
+    ->acceptedFileTypes([
+        'x-world/x-3dmf',
+        'application/vnd.sketchup.skp',
+    ])
+    ->mimeTypeMap([
+        '3dm' => 'x-world/x-3dmf',
+        'skp' => 'application/vnd.sketchup.skp',
+    ]);
+```
+
 ### File size validation
 
 You may also restrict the size of uploaded files in kilobytes:
@@ -444,6 +488,33 @@ use Filament\Forms\Components\FileUpload;
 FileUpload::make('attachment')
     ->minSize(512)
     ->maxSize(1024)
+```
+
+#### Uploading large files
+
+If you experience issues when uploading large files, such as HTTP requests failing with a response status of 422 in the browser's console, you may need to tweak your configuration.
+
+In the `php.ini` file for your server, increasing the maximum file size may fix the issue:
+
+```ini
+post_max_size = 120M
+upload_max_filesize = 120M
+```
+
+Livewire also validates file size before uploading. To publish the Livewire config file, run:
+
+```bash
+php artisan livewire:publish --config
+```
+
+The [max upload size can be adjusted in the `rules` key of `temporary_file_upload`]((https://livewire.laravel.com/docs/uploads#global-validation)). In this instance, KB are used in the rule, and 120MB is 122880KB:
+
+```php
+'temporary_file_upload' => [
+    // ...
+    'rules' => ['required', 'file', 'max:122880'],
+    // ...
+],
 ```
 
 ### Number of files validation

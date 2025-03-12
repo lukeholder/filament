@@ -85,7 +85,7 @@ class MakeResourceCommand extends Command
         $panel = $this->option('panel');
 
         if ($panel) {
-            $panel = Filament::getPanel($panel);
+            $panel = Filament::getPanel($panel, isStrict: false);
         }
 
         if (! $panel) {
@@ -104,6 +104,13 @@ class MakeResourceCommand extends Command
 
         $resourceDirectories = $panel->getResourceDirectories();
         $resourceNamespaces = $panel->getResourceNamespaces();
+
+        foreach ($resourceDirectories as $resourceIndex => $resourceDirectory) {
+            if (str($resourceDirectory)->startsWith(base_path('vendor'))) {
+                unset($resourceDirectories[$resourceIndex]);
+                unset($resourceNamespaces[$resourceIndex]);
+            }
+        }
 
         $namespace = (count($resourceNamespaces) > 1) ?
             select(
@@ -232,8 +239,7 @@ class MakeResourceCommand extends Command
             'formSchema' => $this->indentString($this->option('generate') ? $this->getResourceFormSchema(
                 $modelNamespace . ($modelSubNamespace !== '' ? "\\{$modelSubNamespace}" : '') . '\\' . $modelClass,
             ) : '//', 4),
-            'model' => ($model === 'Resource') ? "{$modelNamespace}\\Resource as ResourceModel" : "{$modelNamespace}\\{$model}",
-            'modelClass' => ($model === 'Resource') ? 'ResourceModel' : $modelClass,
+            ...$this->generateModel($model, $modelNamespace, $modelClass),
             'namespace' => $namespace,
             'pages' => $this->indentString($pages, 3),
             'relations' => $this->indentString($relations, 1),
@@ -316,5 +322,24 @@ class MakeResourceCommand extends Command
         $this->components->info("Filament resource [{$resourcePath}] created successfully.");
 
         return static::SUCCESS;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function generateModel(string $model, string $modelNamespace, string $modelClass): array
+    {
+        $possibilities = ['Form', 'Table', 'Resource'];
+        $params = [];
+
+        if (in_array($model, $possibilities)) {
+            $params['model'] = "{$modelNamespace}\\{$model} as {$model}Model";
+            $params['modelClass'] = $model . 'Model';
+        } else {
+            $params['model'] = "{$modelNamespace}\\{$model}";
+            $params['modelClass'] = $modelClass;
+        }
+
+        return $params;
     }
 }

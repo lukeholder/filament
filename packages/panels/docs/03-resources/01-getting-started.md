@@ -273,7 +273,7 @@ public static function getPluralModelLabel(): string
 
 By default, Filament will automatically capitalize each word in the model label, for some parts of the UI. For example, in page titles, the navigation menu, and the breadcrumbs.
 
-If you want to disable this behaviour for a resource, you can set `$hasTitleCaseModelLabel` in the resource:
+If you want to disable this behavior for a resource, you can set `$hasTitleCaseModelLabel` in the resource:
 
 ```php
 protected static bool $hasTitleCaseModelLabel = false;
@@ -544,4 +544,4 @@ public static function getPages(): array
 }
 ```
 
-Deleting a page will not delete any actions that link to that page. Any actions will open a modal instead of sending the user to the non-existant page. For instance, the `CreateAction` on the List page, the `EditAction` on the table or View page, or the `ViewAction` on the table or Edit page. If you want to remove those buttons, you must delete the actions as well.
+Deleting a page will not delete any actions that link to that page. Any actions will open a modal instead of sending the user to the non-existent page. For instance, the `CreateAction` on the List page, the `EditAction` on the table or View page, or the `ViewAction` on the table or Edit page. If you want to remove those buttons, you must delete the actions as well.

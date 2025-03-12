@@ -23,6 +23,15 @@ class MakeThemeCommand extends Command
 
     public function handle(): int
     {
+        $packageJson = file_get_contents(base_path('package.json')) ?: '';
+
+        $isTailwindV4Installed = str_contains($packageJson, '"@tailwindcss/postcss": "^4')
+            || str_contains($packageJson, '"@tailwindcss/postcss": "4')
+            || str_contains($packageJson, '"@tailwindcss/vite": "^4')
+            || str_contains($packageJson, '"@tailwindcss/vite": "4')
+            || str_contains($packageJson, '"tailwindcss": "^4')
+            || str_contains($packageJson, '"tailwindcss": "4');
+
         $pm = $this->option('pm') ?? 'npm';
 
         exec("{$pm} -v", $pmVersion, $pmVersionExistCode);
@@ -40,12 +49,16 @@ class MakeThemeCommand extends Command
             default => "{$pm} install",
         };
 
-        exec("{$installCommand} tailwindcss @tailwindcss/forms @tailwindcss/typography postcss postcss-nesting autoprefixer --save-dev");
+        if (! $isTailwindV4Installed) {
+            exec("{$installCommand} tailwindcss@3 @tailwindcss/forms @tailwindcss/typography postcss postcss-nesting autoprefixer --save-dev");
+        } else {
+            exec("{$installCommand} @tailwindcss/forms @tailwindcss/typography --save-dev");
+        }
 
         $panel = $this->argument('panel');
 
         if ($panel) {
-            $panel = Filament::getPanel($panel);
+            $panel = Filament::getPanel($panel, isStrict: false);
         }
 
         if (! $panel) {
@@ -83,7 +96,7 @@ class MakeThemeCommand extends Command
             ->map(fn ($segment) => Str::lower(Str::kebab($segment)))
             ->implode('/');
 
-        $this->copyStubToApp('ThemeCss', $cssFilePath, [
+        $this->copyStubToApp($isTailwindV4Installed ? 'ThemeCssTailwind4' : 'ThemeCss', $cssFilePath, [
             'panel' => $panelId,
         ]);
         $this->copyStubToApp('ThemeTailwindConfig', $tailwindConfigFilePath, [
@@ -93,12 +106,23 @@ class MakeThemeCommand extends Command
 
         $this->components->info("Filament theme [resources/css/filament/{$panelId}/theme.css] and [resources/css/filament/{$panelId}/tailwind.config.js] created successfully.");
 
+        if ($isTailwindV4Installed) {
+            $this->components->warn('Action is required to complete the theme setup:');
+            $this->components->bulletList([
+                'It looks like you have Tailwind v4 installed. Filament uses Tailwind v3. You should downgrade your project and re-run this command with `--force`, or use the following command to compile the theme with the Tailwind v3 CLI:',
+                "npx tailwindcss@3 --input ./resources/css/filament/{$panelId}/theme.css --output ./public/css/filament/{$panelId}/theme.css --config ./resources/css/filament/{$panelId}/tailwind.config.js --minify",
+                "Make sure to register the theme in the {$panelId} panel provider using `->theme(asset('css/filament/{$panelId}/theme.css'))`",
+            ]);
+
+            return static::SUCCESS;
+        }
+
         if (empty(glob(base_path('vite.config.*s')))) {
             $this->components->warn('Action is required to complete the theme setup:');
             $this->components->bulletList([
                 "It looks like you don't have Vite installed. Please use your asset bundling system of choice to compile `resources/css/filament/{$panelId}/theme.css` into `public/css/filament/{$panelId}/theme.css`.",
                 "If you're not currently using a bundler, we recommend using Vite. Alternatively, you can use the Tailwind CLI with the following command:",
-                "npx tailwindcss --input ./resources/css/filament/{$panelId}/theme.css --output ./public/css/filament/{$panelId}/theme.css --config ./resources/css/filament/{$panelId}/tailwind.config.js --minify",
+                "npx tailwindcss@3 --input ./resources/css/filament/{$panelId}/theme.css --output ./public/css/filament/{$panelId}/theme.css --config ./resources/css/filament/{$panelId}/tailwind.config.js --minify",
                 "Make sure to register the theme in the {$panelId} panel provider using `->theme(asset('css/filament/{$panelId}/theme.css'))`",
             ]);
 

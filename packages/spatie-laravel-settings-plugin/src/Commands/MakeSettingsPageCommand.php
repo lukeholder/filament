@@ -50,7 +50,7 @@ class MakeSettingsPageCommand extends Command
         $panel = $this->option('panel');
 
         if ($panel) {
-            $panel = Filament::getPanel($panel);
+            $panel = Filament::getPanel($panel, isStrict: false);
         }
 
         if (! $panel) {
@@ -69,6 +69,13 @@ class MakeSettingsPageCommand extends Command
 
         $pageDirectories = $panel->getPageDirectories();
         $pageNamespaces = $panel->getPageNamespaces();
+
+        foreach ($pageDirectories as $pageIndex => $pageDirectory) {
+            if (str($pageDirectory)->startsWith(base_path('vendor'))) {
+                unset($pageDirectories[$pageIndex]);
+                unset($pageNamespaces[$pageIndex]);
+            }
+        }
 
         $namespace = (count($pageNamespaces) > 1) ?
             select(

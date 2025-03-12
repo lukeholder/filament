@@ -12,14 +12,62 @@ return [
 
             'add' => [
                 'label' => 'إضافة إلى :label',
+
+                'modal' => [
+
+                    'heading' => 'إضافة إلى :label',
+
+                    'actions' => [
+
+                        'add' => [
+                            'label' => 'إضافة',
+                        ],
+
+                    ],
+
+                ],
             ],
 
             'add_between' => [
                 'label' => 'إدراج بين الوحدات',
+
+                'modal' => [
+
+                    'heading' => 'إضافة إلى  :label',
+
+                    'actions' => [
+
+                        'add' => [
+                            'label' => 'إضافة',
+                        ],
+
+                    ],
+
+                ],
             ],
 
             'delete' => [
                 'label' => 'حذف',
+            ],
+
+            'edit' => [
+
+                'label' => 'تعديل',
+
+                'modal' => [
+
+                    'heading' => 'تعديل القسم',
+
+                    'actions' => [
+
+                        'save' => [
+                            'label' => 'حفظ التغييرات',
+                        ],
+
+                    ],
+
+                ],
+
             ],
 
             'reorder' => [
@@ -356,6 +404,8 @@ return [
 
             'create_option' => [
 
+                'label' => 'إضافة',
+
                 'modal' => [
 
                     'heading' => 'إضافة',
@@ -377,6 +427,8 @@ return [
             ],
 
             'edit_option' => [
+
+                'label' => 'تعديل',
 
                 'modal' => [
 

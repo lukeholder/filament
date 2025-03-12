@@ -11,6 +11,7 @@ use Filament\Tables\Table;
 use Filament\Tests\Models\Post;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Livewire\Component;
 
@@ -23,6 +24,10 @@ class PostsTable extends Component implements HasForms, Tables\Contracts\HasTabl
     {
         return $table
             ->query(Post::query())
+            ->groups(fn () => [
+                Tables\Grouping\Group::make('author.name')
+                    ->label(fn (Table $table, self $livewire) => 'Dynamic label'),
+            ])
             ->columns([
                 Tables\Columns\TextColumn::make('title')
                     ->sortable()
@@ -71,6 +76,7 @@ class PostsTable extends Component implements HasForms, Tables\Contracts\HasTabl
                     ->state('correct state'),
                 Tables\Columns\TextColumn::make('formatted_state')
                     ->formatStateUsing(fn () => 'formatted state'),
+                Tables\Columns\TextColumn::make('json_array_of_objects.*.value'),
                 Tables\Columns\TextColumn::make('extra_attributes')
                     ->extraAttributes([
                         'class' => 'text-danger-500',
@@ -92,7 +98,8 @@ class PostsTable extends Component implements HasForms, Tables\Contracts\HasTabl
                 Tables\Filters\Filter::make('is_published')
                     ->query(fn (EloquentBuilder $query) => $query->where('is_published', true)),
                 Tables\Filters\SelectFilter::make('author')
-                    ->relationship('author', 'name'),
+                    ->relationship('author', 'name')
+                    ->searchable(['name', 'email', 'job']),
                 Tables\Filters\SelectFilter::make('select_filter_attribute')
                     ->options([
                         true => 'Published',
@@ -100,6 +107,8 @@ class PostsTable extends Component implements HasForms, Tables\Contracts\HasTabl
                     ])
                     ->attribute('is_published'),
                 Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\SelectFilter::make('hidden_filter')
+                    ->hidden(),
             ])
             ->persistFiltersInSession()
             ->headerActions([
@@ -129,6 +138,12 @@ class PostsTable extends Component implements HasForms, Tables\Contracts\HasTabl
                 Tables\Actions\Action::make('enabled'),
                 Tables\Actions\Action::make('disabled')
                     ->disabled(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('groupedWithVisibleGroupCondition'),
+                ])->visible(fn (?Model $record): bool => $record !== null),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('groupedWithHiddenGroupCondition'),
+                ])->hidden(fn (?Model $record): bool => $record !== null),
                 Tables\Actions\Action::make('hasIcon')
                     ->icon('heroicon-m-pencil-square'),
                 Tables\Actions\Action::make('hasLabel')
@@ -152,6 +167,16 @@ class PostsTable extends Component implements HasForms, Tables\Contracts\HasTabl
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\ForceDeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
+                Tables\Actions\ReplicateAction::make()
+                    ->mutateRecordDataUsing(function (array $data): array {
+                        $data['title'] = $data['title'] . ' (Copy)';
+
+                        return $data;
+                    })
+                    ->form([
+                        TextInput::make('title')
+                            ->required(),
+                    ]),
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\DeleteAction::make('groupedDelete'),
                     Tables\Actions\ForceDeleteAction::make('groupedForceDelete'),

@@ -52,7 +52,7 @@ trait CanFormatState
         return $this;
     }
 
-    public function date(?string $format = null, ?string $timezone = null): static
+    public function date(string | Closure | null $format = null, ?string $timezone = null): static
     {
         $this->isDate = true;
 
@@ -65,13 +65,13 @@ trait CanFormatState
 
             return Carbon::parse($state)
                 ->setTimezone($timezone ?? $column->getTimezone())
-                ->translatedFormat($format);
+                ->translatedFormat($column->evaluate($format));
         });
 
         return $this;
     }
 
-    public function dateTime(?string $format = null, ?string $timezone = null): static
+    public function dateTime(string | Closure | null $format = null, ?string $timezone = null): static
     {
         $this->isDateTime = true;
 
@@ -86,7 +86,57 @@ trait CanFormatState
     {
         $this->isDateTime = true;
 
-        $this->formatStateUsing(static function (TextColumn $column, $state) use ($timezone): ?string {
+        $this->formatStateUsing(static function (TextColumn $column, mixed $state) use ($timezone): ?string {
+            if (blank($state)) {
+                return null;
+            }
+
+            return Carbon::parse($state)
+                ->setTimezone($timezone ?? $column->getTimezone())
+                ->diffForHumans();
+        });
+
+        return $this;
+    }
+
+    public function dateTooltip(string | Closure | null $format = null, ?string $timezone = null): static
+    {
+        $format ??= Table::$defaultDateDisplayFormat;
+
+        $this->tooltip(static function (TextColumn $column, mixed $state) use ($format, $timezone): ?string {
+            if (blank($state)) {
+                return null;
+            }
+
+            return Carbon::parse($state)
+                ->setTimezone($timezone ?? $column->getTimezone())
+                ->translatedFormat($column->evaluate($format));
+        });
+
+        return $this;
+    }
+
+    public function dateTimeTooltip(string | Closure | null $format = null, ?string $timezone = null): static
+    {
+        $format ??= Table::$defaultDateTimeDisplayFormat;
+
+        $this->dateTooltip($format, $timezone);
+
+        return $this;
+    }
+
+    public function timeTooltip(string | Closure | null $format = null, ?string $timezone = null): static
+    {
+        $format ??= Table::$defaultTimeDisplayFormat;
+
+        $this->dateTooltip($format, $timezone);
+
+        return $this;
+    }
+
+    public function sinceTooltip(?string $timezone = null): static
+    {
+        $this->tooltip(static function (TextColumn $column, mixed $state) use ($timezone): ?string {
             if (blank($state)) {
                 return null;
             }
@@ -113,12 +163,13 @@ trait CanFormatState
             }
 
             $currency = $column->evaluate($currency) ?? Table::$defaultCurrency;
+            $locale = $column->evaluate($locale) ?? Table::$defaultNumberLocale ?? config('app.locale');
 
             if ($divideBy) {
                 $state /= $divideBy;
             }
 
-            return Number::currency($state, $currency, $column->evaluate($locale));
+            return Number::currency($state, $currency, $locale);
         });
 
         return $this;
@@ -153,13 +204,15 @@ trait CanFormatState
                 );
             }
 
-            return Number::format($state, $decimalPlaces, $column->evaluate($maxDecimalPlaces), locale: $column->evaluate($locale));
+            $locale = $column->evaluate($locale) ?? Table::$defaultNumberLocale ?? config('app.locale');
+
+            return Number::format($state, $decimalPlaces, $column->evaluate($maxDecimalPlaces), locale: $locale);
         });
 
         return $this;
     }
 
-    public function time(?string $format = null, ?string $timezone = null): static
+    public function time(string | Closure | null $format = null, ?string $timezone = null): static
     {
         $this->isTime = true;
 

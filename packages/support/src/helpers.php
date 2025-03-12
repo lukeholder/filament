@@ -50,7 +50,7 @@ if (! function_exists('Filament\Support\get_model_label')) {
 if (! function_exists('Filament\Support\locale_has_pluralization')) {
     function locale_has_pluralization(): bool
     {
-        return (new MessageSelector())->getPluralIndex(app()->getLocale(), 10) > 0;
+        return (new MessageSelector)->getPluralIndex(app()->getLocale(), 10) > 0;
     }
 }
 
@@ -181,6 +181,11 @@ if (! function_exists('Filament\Support\generate_search_column_expression')) {
         };
 
         if ($isSearchForcedCaseInsensitive) {
+            if (in_array($driverName, ['mysql', 'mariadb'], true) && str($column)->contains('->') && ! str($column)->startsWith('json_extract(')) {
+                [$field, $path] = invade($databaseConnection->getQueryGrammar())->wrapJsonFieldAndPath($column); /** @phpstan-ignore-line */
+                $column = "json_extract({$field}{$path})";
+            }
+
             $column = "lower({$column})";
         }
 

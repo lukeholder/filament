@@ -225,6 +225,11 @@ class FilamentManager
         return $this->getCurrentPanel()->getMaxContentWidth();
     }
 
+    public function getSimplePageMaxContentWidth(): MaxWidth | string | null
+    {
+        return $this->getCurrentPanel()->getSimplePageMaxContentWidth();
+    }
+
     public function getModelResource(string | Model $model): ?string
     {
         return $this->getCurrentPanel()->getModelResource($model);
@@ -279,9 +284,9 @@ class FilamentManager
         return $this->getCurrentPanel()->getPages();
     }
 
-    public function getPanel(?string $id = null): Panel
+    public function getPanel(?string $id = null, bool $isStrict = true): Panel
     {
-        return app(PanelRegistry::class)->get($id);
+        return app(PanelRegistry::class)->get($id, $isStrict);
     }
 
     /**
@@ -340,6 +345,14 @@ class FilamentManager
     public function getResources(): array
     {
         return $this->getCurrentPanel()->getResources();
+    }
+
+    /**
+     * @param  array<mixed>  $parameters
+     */
+    public function getResourceUrl(string | Model $model, string $name = 'index', array $parameters = [], bool $isAbsolute = true, ?Model $tenant = null): string
+    {
+        return $this->getCurrentPanel()->getResourceUrl($model, $name, $parameters, $isAbsolute, $tenant);
     }
 
     public function getSidebarWidth(): string
@@ -447,8 +460,6 @@ class FilamentManager
 
     public function getUserAvatarUrl(Model | Authenticatable $user): string
     {
-        $avatar = null;
-
         if ($user instanceof HasAvatar) {
             $avatar = $user->getFilamentAvatarUrl();
         } else {
@@ -558,6 +569,11 @@ class FilamentManager
     public function hasDatabaseNotifications(): bool
     {
         return $this->getCurrentPanel()->hasDatabaseNotifications();
+    }
+
+    public function hasLazyLoadedDatabaseNotifications(): bool
+    {
+        return $this->getCurrentPanel()->hasLazyLoadedDatabaseNotifications();
     }
 
     public function hasEmailVerification(): bool

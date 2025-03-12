@@ -22,9 +22,13 @@
             <link rel="icon" href="{{ $favicon }}" />
         @endif
 
+        @php
+            $title = trim(strip_tags(($livewire ?? null)?->getTitle() ?? ''));
+            $brandName = trim(strip_tags(filament()->getBrandName()));
+        @endphp
+
         <title>
-            {{ filled($title = strip_tags(($livewire ?? null)?->getTitle() ?? '')) ? "{$title} - " : null }}
-            {{ strip_tags(filament()->getBrandName()) }}
+            {{ filled($title) ? "{$title} - " : null }} {{ $brandName }}
         </title>
 
         {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::STYLES_BEFORE, scopes: $livewire->getRenderHookScopes()) }}
@@ -77,16 +81,22 @@
             </script>
         @else
             <script>
-                const theme = localStorage.getItem('theme') ?? @js(filament()->getDefaultThemeMode()->value)
+                const loadDarkMode = () => {
+                    window.theme = localStorage.getItem('theme') ?? @js(filament()->getDefaultThemeMode()->value)
 
-                if (
-                    theme === 'dark' ||
-                    (theme === 'system' &&
-                        window.matchMedia('(prefers-color-scheme: dark)')
-                            .matches)
-                ) {
-                    document.documentElement.classList.add('dark')
+                    if (
+                        window.theme === 'dark' ||
+                        (window.theme === 'system' &&
+                            window.matchMedia('(prefers-color-scheme: dark)')
+                                .matches)
+                    ) {
+                        document.documentElement.classList.add('dark')
+                    }
                 }
+
+                loadDarkMode()
+
+                document.addEventListener('livewire:navigated', loadDarkMode)
             </script>
         @endif
 
@@ -117,6 +127,12 @@
                 window.Echo = new window.EchoFactory(@js(config('filament.broadcasting.echo')))
 
                 window.dispatchEvent(new CustomEvent('EchoLoaded'))
+            </script>
+        @endif
+
+        @if (filament()->hasDarkMode() && (! filament()->hasDarkModeForced()))
+            <script>
+                loadDarkMode()
             </script>
         @endif
 
